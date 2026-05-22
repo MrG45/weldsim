@@ -176,9 +176,18 @@
         <button class="btn-back" id="btn-back-process">← Back</button>
         <h2>Choose Your Process</h2>
       </div>
+      <div class="process-brief">
+        <div>
+          <span class="brief-kicker">Booth setup</span>
+          <p>Select a process, review the lesson, pass PPE, then run a guided bead with live feedback.</p>
+        </div>
+        <div class="brief-meter" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
       <div class="process-grid">
         <div class="process-card" data-process="STICK">
-          <div class="process-icon">🔥</div>
+          <div class="process-icon process-icon-stick" aria-hidden="true"></div>
           <h3>Stick Welding</h3>
           <p class="process-sub">SMAW — Shielded Metal Arc</p>
           <p class="process-desc">The classic. Learn arc striking, electrode control, and slag removal. Best starting point for beginners.</p>
@@ -191,7 +200,7 @@
           <button class="btn btn-process">Select</button>
         </div>
         <div class="process-card" data-process="MIG">
-          <div class="process-icon">🌀</div>
+          <div class="process-icon process-icon-mig" aria-hidden="true"></div>
           <h3>MIG Welding</h3>
           <p class="process-sub">GMAW — Gas Metal Arc</p>
           <p class="process-desc">Wire-feed welding with gas shielding. Most common in industry. Master push technique and wire stickout.</p>
@@ -204,7 +213,7 @@
           <button class="btn btn-process">Select</button>
         </div>
         <div class="process-card" data-process="FCAW">
-          <div class="process-icon">💨</div>
+          <div class="process-icon process-icon-fcaw" aria-hidden="true"></div>
           <h3>Flux-Core</h3>
           <p class="process-sub">FCAW — Flux-Cored Arc</p>
           <p class="process-desc">Drag technique, self-shielded. Works outdoors. Learn flux management and heavy penetration control.</p>
@@ -217,7 +226,7 @@
           <button class="btn btn-process">Select</button>
         </div>
         <div class="process-card" data-process="TIG">
-          <div class="process-icon">✨</div>
+          <div class="process-icon process-icon-tig" aria-hidden="true"></div>
           <h3>TIG Welding</h3>
           <p class="process-sub">GTAW — Gas Tungsten Arc</p>
           <p class="process-desc">Torch in one hand, filler rod in the other. Foot pedal controls amperage. The most precise process.</p>
