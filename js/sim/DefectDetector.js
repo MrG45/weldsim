@@ -15,9 +15,10 @@ export const DEFECT_TYPES = {
 export function detectDefects(params, processConfig) {
   const defects = [];
   const { arcLengthOptimal: arcOpt, travelSpeedOptimal: speedOpt } = processConfig;
+  const heatOpt = processConfig.heatInputOptimal;
 
   // ── Arc length defects ──
-  if (params.arcLength < arcOpt.min * 0.5) {
+  if (params.contact || params.arcLength < arcOpt.min * 0.5) {
     defects.push({
       type: DEFECT_TYPES.SPATTER,
       severity: 0.9,
@@ -26,7 +27,7 @@ export function detectDefects(params, processConfig) {
     });
   }
 
-  if (params.arcLength > arcOpt.max * 2.0) {
+  if (params.arcLost || params.arcLength > arcOpt.max * 2.0) {
     defects.push({
       type: DEFECT_TYPES.INCOMPLETE_FUSION,
       severity: Math.min(1, (params.arcLength - arcOpt.max * 2) / arcOpt.max),
@@ -56,16 +57,16 @@ export function detectDefects(params, processConfig) {
   }
 
   // ── Heat input defects ──
-  if (params.heatInput > 2.5 && params.materialThickness < 5) {
+  if (heatOpt && params.heatInput > heatOpt.max * 1.7) {
     defects.push({
       type: DEFECT_TYPES.BURN_THROUGH,
-      severity: Math.min(1, (params.heatInput - 2.5) / 2),
+      severity: Math.min(1, (params.heatInput - heatOpt.max) / heatOpt.max),
       position: params.position.clone(),
       note: 'Too much heat on thin material causes burn-through',
     });
   }
 
-  if (params.heatInput < 0.2 && params.travelSpeed > 20) {
+  if (heatOpt && params.heatInput < heatOpt.min * 0.6 && params.travelSpeed > 20) {
     defects.push({
       type: DEFECT_TYPES.COLD_LAP,
       severity: 0.6,

@@ -11,8 +11,8 @@ export class HAZVisualizer {
     this._changed = false;
 
     // World bounds for UV mapping
-    this._xMin = -200; this._xMax = 200;
-    this._zMin = -120; this._zMax = 120;
+    this._xMin = -330; this._xMax = 330;
+    this._zMin = -190; this._zMax = 190;
   }
 
   applyHeat(position, heatInput) {

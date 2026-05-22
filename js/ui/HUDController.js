@@ -44,6 +44,7 @@ export class HUDController {
     // Ideal heat range (updated per process)
     this._heatIdealMin = 0.8;
     this._heatIdealMax = 1.5;
+    this._weldRange = { min: -260, max: 260 };
 
     this._warningTimer = 0;
     this._lastWarning  = '';
@@ -100,7 +101,7 @@ export class HUDController {
     }
 
     // Set ideal heat range sublabel
-    this._setHeatIdealRange(processId);
+    this._setHeatIdealRange(processId, p);
     this._updateDerivedValues();
 
     // Wire speed: MIG and FCAW only
@@ -128,18 +129,18 @@ export class HUDController {
     if (baseScroll) baseScroll.style.display = isTIG ? 'none' : 'flex';
   }
 
-  _setHeatIdealRange(processId) {
+  _setHeatIdealRange(processId, processConfig) {
     const ranges = {
       STICK: { min: 0.9, max: 1.8 },
       MIG:   { min: 0.8, max: 1.5 },
       FCAW:  { min: 1.0, max: 2.0 },
       TIG:   { min: 0.3, max: 0.8 },
     };
-    const r = ranges[processId] ?? { min: 0.8, max: 1.5 };
+    const r = processConfig?.heatInputOptimal ?? ranges[processId] ?? { min: 0.8, max: 1.5 };
     this._heatIdealMin = r.min;
     this._heatIdealMax = r.max;
     if (this._sbHeatRange)
-      this._sbHeatRange.textContent = `IDEAL ${r.min.toFixed(1)} – ${r.max.toFixed(1)} kJ/mm`;
+      this._sbHeatRange.textContent = `IDEAL RANGE ${r.min.toFixed(1)} - ${r.max.toFixed(1)} kJ/mm`;
   }
 
   _updateDerivedValues() {
@@ -185,9 +186,10 @@ export class HUDController {
       this._sbValQuality.style.color = '';
     }
 
-    // Pass progress dot — position.x runs -180…+180
+    // Pass progress dot
     if (this._passTorchDot) {
-      const pct = Math.max(0, Math.min(100, (torchState.position.x + 180) / 360 * 100));
+      const span = this._weldRange.max - this._weldRange.min;
+      const pct = Math.max(0, Math.min(100, (torchState.position.x - this._weldRange.min) / span * 100));
       this._passTorchDot.style.left = pct + '%';
     }
 
@@ -245,24 +247,26 @@ export class HUDController {
     const arcLen = torchState.arcLength;
     const { arcLengthOptimal: arcOpt, travelSpeedOptimal: speedOpt } = processConfig;
 
-    if (arcLen < arcOpt.min * 0.5) {
-      msg = '⚠ ARC TOO SHORT — Spatter & contamination!';
+    if (torchState.arcLost) {
+      msg = 'ARC LOST - lower torch back into range';
+    } else if (arcLen < arcOpt.min * 0.5) {
+      msg = 'ARC TOO SHORT - spatter and contamination';
     } else if (arcLen < arcOpt.min) {
-      msg = 'Arc a bit short — raise torch slightly';
+      msg = 'Arc a bit short - raise torch slightly';
     } else if (arcLen > arcOpt.max * 2) {
-      msg = '⚠ ARC TOO LONG — Incomplete fusion!';
+      msg = 'ARC TOO LONG - incomplete fusion';
     } else if (arcLen > arcOpt.max) {
-      msg = 'Arc getting long — lower torch';
+      msg = 'Arc getting long - lower torch';
     } else if (torchState.travelSpeed > speedOpt.max * 1.3) {
-      msg = '⚠ TOO FAST — Risk of undercut!';
+      msg = 'TOO FAST - risk of undercut';
     } else if (torchState.travelSpeed > speedOpt.max) {
-      msg = 'Slow down — bead getting narrow';
+      msg = 'Slow down - bead getting narrow';
     } else if (torchState.travelSpeed > 5 && torchState.travelSpeed < speedOpt.min * 0.6) {
-      msg = '⚠ TOO SLOW — Risk of overlap/burn-through!';
+      msg = 'TOO SLOW - risk of overlap or burn-through';
     }
 
     if (processConfig.id === 'FCAW' && torchState.travelAngle < 0) {
-      msg = '⚠ FCAW needs DRAG technique — tilt back!';
+      msg = 'FCAW needs drag technique - tilt back';
     }
 
     if (msg) {

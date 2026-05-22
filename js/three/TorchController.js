@@ -5,7 +5,9 @@ import * as THREE from 'three';
 
 const ARC_HEIGHT_MIN = 0.5;   // mm min above surface
 const ARC_HEIGHT_MAX = 30;    // mm max arc length
-const ARC_HEIGHT_DEFAULT = 25; // start far away — player must lower mouse to strike arc
+const ARC_HEIGHT_DEFAULT = 12; // start high enough that the player must lower into the arc zone
+const TRAVEL_MIN_X = -260;
+const TRAVEL_MAX_X = 260;
 
 // Simplified controls:
 //   Mouse LEFT / RIGHT  → position along the weld joint (world X)
@@ -22,7 +24,7 @@ export class TorchController {
     // Current state
     this.position = new THREE.Vector3(0, ARC_HEIGHT_DEFAULT, 0);
     this.arcOn = false;
-    this.workAngle = 90;   // degrees
+    this.workAngle = 0;    // degrees off perpendicular to the plate
     this.travelAngle = 15; // degrees (push/drag)
     this.arcHeight = ARC_HEIGHT_DEFAULT;
     this.fillerAmount = 0;
@@ -97,8 +99,8 @@ export class TorchController {
 
   update(dt) {
     // Key-based angle control
-    if (this._keys['KeyA']) this.workAngle = Math.max(60, this.workAngle - 40 * dt);
-    if (this._keys['KeyD']) this.workAngle = Math.min(120, this.workAngle + 40 * dt);
+    if (this._keys['KeyA']) this.workAngle = Math.max(-30, this.workAngle - 28 * dt);
+    if (this._keys['KeyD']) this.workAngle = Math.min(30, this.workAngle + 28 * dt);
     if (this._keys['KeyW']) this.travelAngle = Math.min(45, this.travelAngle + 30 * dt);
     if (this._keys['KeyS']) this.travelAngle = Math.max(-10, this.travelAngle - 30 * dt);
 
@@ -108,14 +110,15 @@ export class TorchController {
     }
 
     // Sensitivity: exponential scale so every step feels different
-    // sens 1 = 0.15 mm/px, sens 10 = 1.5 mm/px (10× range)
+    // sens 1 = 0.015 mm/px, sens 10 = 0.16 mm/px. This keeps travel speed
+    // in a real 15-45 cm/min training range instead of twitchy arcade motion.
     const sens = parseInt(document.getElementById('ctrl-sensitivity')?.value ?? 5);
-    const mmPerPx = 0.15 * Math.pow(10, (sens - 1) / 9);
+    const mmPerPx = 0.015 * Math.pow(10.7, (sens - 1) / 9);
 
-    this._torchX = Math.max(-210, Math.min(210,
+    this._torchX = Math.max(TRAVEL_MIN_X, Math.min(TRAVEL_MAX_X,
       this._torchX + this._pendingDX * mmPerPx));
     this.arcHeight = Math.max(ARC_HEIGHT_MIN, Math.min(ARC_HEIGHT_MAX,
-      this.arcHeight - this._pendingDY * mmPerPx * 0.5));
+      this.arcHeight - this._pendingDY * mmPerPx * 0.85));
 
     this._pendingDX = 0;
     this._pendingDY = 0;
@@ -127,17 +130,17 @@ export class TorchController {
 
     // Build torch position: smoothed X, smoothed arc height, Z locked to joint line
     const target = new THREE.Vector3(
-      Math.max(-180, Math.min(180, this._torchXSmooth)),
+      Math.max(TRAVEL_MIN_X, Math.min(TRAVEL_MAX_X, this._torchXSmooth)),
       this._arcHeightSmooth,
       0   // always on the weld joint centre line
     );
 
     // Compute travel speed (mm/min)
-    const dist = this._lastPosition.distanceTo(target);
+    const dist = Math.abs(target.x - this._lastPosition.x);
     const rawSpeed = (dist / dt) * 60;
 
     this._speedBuffer.push(rawSpeed);
-    if (this._speedBuffer.length > 8) this._speedBuffer.shift();
+    if (this._speedBuffer.length > 20) this._speedBuffer.shift();
     this._travelSpeed = this._speedBuffer.reduce((a, b) => a + b, 0) / this._speedBuffer.length;
 
     this._lastPosition.copy(target);

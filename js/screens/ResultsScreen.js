@@ -12,10 +12,10 @@ export class ResultsScreen {
 
   show(sessionData) {
     // sessionData: { processId, scores: {arc, speed, work, travel, quality}, heatInput, defectLog, jointType }
-    const { processId, scores, heatInput, defectLog } = sessionData;
+    const { processId, scores, heatInput, coverage = 0, defectLog } = sessionData;
 
     this._updateGrade(scores.quality, processId);
-    this._updateBreakdown(scores, heatInput);
+    this._updateBreakdown(scores, heatInput, coverage);
     this._updateDefects(defectLog);
     this._checkAchievements(processId, scores);
 
@@ -40,15 +40,17 @@ export class ResultsScreen {
     if (scoreText) scoreText.textContent = `Score: ${pct}%`;
   }
 
-  _updateBreakdown(scores, heatInput) {
+  _updateBreakdown(scores, heatInput, coverage) {
     const container = document.getElementById('results-breakdown');
     if (!container) return;
 
     const items = [
       { label: 'Arc Length',    value: scores.arc,    pct: Math.round(scores.arc * 100)    },
       { label: 'Travel Speed',  value: scores.speed,  pct: Math.round(scores.speed * 100)  },
+      { label: 'Heat Input',    value: scores.heat ?? 0, pct: Math.round((scores.heat ?? 0) * 100) },
       { label: 'Work Angle',    value: scores.work,   pct: Math.round(scores.work * 100)   },
       { label: 'Travel Angle',  value: scores.travel, pct: Math.round(scores.travel * 100) },
+      { label: 'Pass Coverage', value: coverage,       pct: Math.round(coverage * 100)      },
     ];
 
     container.innerHTML = items.map(item => {
@@ -62,9 +64,9 @@ export class ResultsScreen {
         </div>
       `;
     }).join('') + `
-      <div class="breakdown-item">
-        <span class="bi-label">Heat Input</span>
-        <span class="bi-value">${heatInput.toFixed(3)} kJ/mm</span>
+      <div class="breakdown-item breakdown-wide">
+        <span class="bi-label">Average Heat Input</span>
+        <span class="bi-value">${heatInput.toFixed(2)} kJ/mm</span>
       </div>
     `;
   }

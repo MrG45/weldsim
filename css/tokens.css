@@ -1,23 +1,23 @@
 :root {
   /* Dark industrial palette */
-  --bg:            #0a0a0c;
-  --bg-surface:    #141418;
-  --bg-panel:      #1c1c22;
-  --bg-card:       #242430;
-  --bg-card-hover: #2e2e3c;
+  --bg:            #05080d;
+  --bg-surface:    rgba(5, 10, 18, 0.88);
+  --bg-panel:      rgba(8, 14, 24, 0.82);
+  --bg-card:       rgba(20, 31, 46, 0.82);
+  --bg-card-hover: rgba(32, 48, 68, 0.92);
 
-  --border:        #333340;
-  --border-light:  #44445a;
+  --border:        rgba(124, 154, 190, 0.25);
+  --border-light:  rgba(145, 185, 235, 0.42);
 
   --text:          #e8e8f0;
-  --text-muted:    #888899;
-  --text-dim:      #555566;
+  --text-muted:    #a9b2c4;
+  --text-dim:      #647084;
 
   /* Status colors */
-  --color-ok:      #22c55e;
-  --color-warn:    #f59e0b;
-  --color-danger:  #ef4444;
-  --color-info:    #3b82f6;
+  --color-ok:      #63f575;
+  --color-warn:    #ffc33e;
+  --color-danger:  #ff553a;
+  --color-info:    #5fb7ff;
 
   /* Welding-specific */
   --arc-blue:      #88aaff;
@@ -55,6 +55,6 @@
   --bar-h:   24px;
 
   /* Bottom bar heights */
-  --statusbar-h:  52px;
-  --controlbar-h: 54px;
+  --statusbar-h:  78px;
+  --controlbar-h: 68px;
 }

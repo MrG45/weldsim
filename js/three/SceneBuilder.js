@@ -12,8 +12,8 @@ import { OutputPass }        from 'three/addons/postprocessing/OutputPass.js';
 export class SceneBuilder {
   static build(jointType = 'BUTT') {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x080810);
-    scene.fog = new THREE.Fog(0x080810, 2000, 5000);
+    scene.background = new THREE.Color(0x101722);
+    scene.fog = new THREE.Fog(0x101722, 1800, 5600);
 
     SceneBuilder._addLighting(scene);
     SceneBuilder._addBooth(scene);
@@ -24,9 +24,9 @@ export class SceneBuilder {
   }
 
   static createCamera() {
-    const cam = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 1, 10000);
-    cam.position.set(0, 290, 400);
-    cam.lookAt(0, 15, 0);
+    const cam = new THREE.PerspectiveCamera(34, window.innerWidth / window.innerHeight, 1, 10000);
+    cam.position.set(0, 340, 650);
+    cam.lookAt(0, 8, 0);
     return cam;
   }
 
@@ -37,7 +37,7 @@ export class SceneBuilder {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.5;
+    renderer.toneMappingExposure = 2.05;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     return renderer;
   }
@@ -63,12 +63,12 @@ export class SceneBuilder {
 
   static _addLighting(scene) {
     // Ambient fills the shadows so the scene isn't a black void
-    const ambient = new THREE.AmbientLight(0x556688, 1.4);
+    const ambient = new THREE.AmbientLight(0x7892b0, 1.45);
     scene.add(ambient);
 
     // Main overhead warm light — the primary scene illumination
-    const mainLight = new THREE.DirectionalLight(0xfff4e0, 1.8);
-    mainLight.position.set(80, 500, 200);
+    const mainLight = new THREE.DirectionalLight(0xf1f7ff, 2.25);
+    mainLight.position.set(120, 520, 240);
     mainLight.castShadow = true;
     mainLight.shadow.mapSize.set(2048, 2048);
     mainLight.shadow.camera.near = 1;
@@ -81,20 +81,24 @@ export class SceneBuilder {
     scene.add(mainLight);
 
     // Cool fill from camera-left — brings out the metal reflections
-    const fillLight = new THREE.DirectionalLight(0xaabbdd, 0.85);
-    fillLight.position.set(-250, 350, 300);
+    const fillLight = new THREE.DirectionalLight(0x8ab9ff, 1.35);
+    fillLight.position.set(-300, 330, 420);
     scene.add(fillLight);
 
+    const cameraFill = new THREE.DirectionalLight(0xc8dcff, 1.15);
+    cameraFill.position.set(0, 260, 680);
+    scene.add(cameraFill);
+
     // Tight spot over the weld table — focused on the work area
-    const workSpot = new THREE.SpotLight(0xfff5e0, 1.5, 900, Math.PI / 5, 0.55, 1.8);
-    workSpot.position.set(0, 580, 80);
+    const workSpot = new THREE.SpotLight(0xfff5e0, 3.4, 1050, Math.PI / 5, 0.52, 1.45);
+    workSpot.position.set(0, 560, 130);
     workSpot.target.position.set(0, 0, 0);
     workSpot.castShadow = false;
     scene.add(workSpot);
     scene.add(workSpot.target);
 
     // Hemisphere — warm sky / dark ground for subtle color variation
-    const hemi = new THREE.HemisphereLight(0x4466aa, 0x111122, 0.55);
+    const hemi = new THREE.HemisphereLight(0x8aa9dd, 0x17202c, 0.78);
     scene.add(hemi);
 
     SceneBuilder._addCeilingFixtures(scene);
@@ -124,7 +128,7 @@ export class SceneBuilder {
 
   static _addBooth(scene) {
     const wallMat = new THREE.MeshStandardMaterial({
-      color: 0x252530,
+      color: 0x26313d,
       roughness: 0.9,
       metalness: 0.1,
       side: THREE.BackSide,
@@ -210,7 +214,7 @@ export class SceneBuilder {
     const ctx = canvas.getContext('2d');
 
     // Industrial steel — medium dark gray with blue-steel tint, clearly visible under lighting
-    ctx.fillStyle = '#3a3e48';
+    ctx.fillStyle = '#626b78';
     ctx.fillRect(0, 0, W, H);
 
     // Mill-scale variation — slightly lighter patches for texture
@@ -219,7 +223,7 @@ export class SceneBuilder {
       const y = Math.random() * H;
       const r = 8 + Math.random() * 50;
       const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-      grad.addColorStop(0, `rgba(80, 50, 20, ${0.10 + Math.random() * 0.20})`);
+      grad.addColorStop(0, `rgba(130, 92, 48, ${0.07 + Math.random() * 0.13})`);
       grad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = grad;
       ctx.fillRect(x - r, y - r, r * 2, r * 2);
@@ -228,7 +232,7 @@ export class SceneBuilder {
     // Horizontal grinding/brushed marks — light streaks to show surface finish
     for (let i = 0; i < 120; i++) {
       const y = Math.random() * H;
-      const b = 68 + Math.floor(Math.random() * 40);
+      const b = 116 + Math.floor(Math.random() * 44);
       ctx.strokeStyle = `rgba(${b},${b + 2},${b + 6},${0.10 + Math.random() * 0.15})`;
       ctx.lineWidth = 0.4 + Math.random() * 1.4;
       ctx.beginPath();
@@ -240,7 +244,7 @@ export class SceneBuilder {
     // Scratch lines
     for (let i = 0; i < 12; i++) {
       const y1 = Math.random() * H;
-      ctx.strokeStyle = `rgba(90,95,105,${0.18 + Math.random() * 0.22})`;
+      ctx.strokeStyle = `rgba(150,158,170,${0.20 + Math.random() * 0.22})`;
       ctx.lineWidth = 0.5;
       ctx.beginPath();
       ctx.moveTo(0, y1);
@@ -266,10 +270,10 @@ export class SceneBuilder {
   }
 
   static _addCurtains(scene) {
-    const curtainMat = new THREE.MeshLambertMaterial({ color: 0x0a1a0a, transparent: true, opacity: 0.8 });
-    [-500, 500].forEach(x => {
-      const curtain = new THREE.Mesh(new THREE.PlaneGeometry(200, 800), curtainMat);
-      curtain.position.set(x, 200, -300);
+    const curtainMat = new THREE.MeshLambertMaterial({ color: 0x0b2418, transparent: true, opacity: 0.28 });
+    [-860, 860].forEach(x => {
+      const curtain = new THREE.Mesh(new THREE.PlaneGeometry(180, 760), curtainMat);
+      curtain.position.set(x, 200, -520);
       scene.add(curtain);
     });
   }
@@ -277,8 +281,8 @@ export class SceneBuilder {
   static _addTable(scene) {
     // Table top
     const tableTop = new THREE.Mesh(
-      new THREE.BoxGeometry(800, 20, 500),
-      new THREE.MeshStandardMaterial({ color: 0x888a90, roughness: 0.75, metalness: 0.55 })
+      new THREE.BoxGeometry(1040, 24, 650),
+      new THREE.MeshStandardMaterial({ color: 0x76808c, roughness: 0.62, metalness: 0.62 })
     );
     tableTop.position.set(0, -120, 0);  // surface at Y = -110
     tableTop.castShadow = true;
@@ -287,7 +291,7 @@ export class SceneBuilder {
 
     // Table legs
     const legMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.9, metalness: 0.4 });
-    [[-350, -250], [350, -250], [-350, 250], [350, 250]].forEach(([x, z]) => {
+    [[-460, -300], [460, -300], [-460, 300], [460, 300]].forEach(([x, z]) => {
       const leg = new THREE.Mesh(new THREE.BoxGeometry(30, 700, 30), legMat);
       leg.position.set(x, -475, z);
       leg.castShadow = true;
@@ -295,22 +299,22 @@ export class SceneBuilder {
     });
 
     // Welding machine (off to the right)
-    const machineMat = new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.7, metalness: 0.5 });
+    const machineMat = new THREE.MeshStandardMaterial({ color: 0x3f4a5c, roughness: 0.7, metalness: 0.5 });
     const machine = new THREE.Mesh(new THREE.BoxGeometry(200, 400, 150), machineMat);
-    machine.position.set(550, 80, -100);
+    machine.position.set(650, 80, -150);
     machine.castShadow = true;
     scene.add(machine);
 
     // Machine panel detail
     const panelMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e, roughness: 0.5 });
     const panel = new THREE.Mesh(new THREE.BoxGeometry(150, 100, 5), panelMat);
-    panel.position.set(550, 180, -24);
+    panel.position.set(650, 180, -74);
     scene.add(panel);
 
     // Ground clamp cable
     const cableMat = new THREE.MeshLambertMaterial({ color: 0x1a1a00 });
     const cable = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 400, 6), cableMat);
-    cable.position.set(350, -60, 0);
+    cable.position.set(430, -60, -20);
     cable.rotation.z = 0.3;
     scene.add(cable);
   }
@@ -322,8 +326,8 @@ export class SceneBuilder {
     const steelTex = SceneBuilder._makeSteelTexture();
     const metalMat = new THREE.MeshStandardMaterial({
       map: steelTex,
-      roughness: 0.60,
-      metalness: 0.80,
+      roughness: 0.56,
+      metalness: 0.72,
     });
 
     // Create HAZ texture (applied to top face)
@@ -335,11 +339,11 @@ export class SceneBuilder {
 
     const topMat = new THREE.MeshStandardMaterial({
       map: steelTex,
-      roughness: 0.65,
-      metalness: 0.85,
+      roughness: 0.58,
+      metalness: 0.76,
       emissiveMap: hazTex,
       emissive: new THREE.Color(1, 1, 1),
-      emissiveIntensity: 2.0,
+      emissiveIntensity: 0.75,
     });
 
     switch (jointType) {
@@ -351,7 +355,7 @@ export class SceneBuilder {
 
     // Invisible raycaster plane at Y = 0 (torch positioning)
     const rayPlane = new THREE.Mesh(
-      new THREE.PlaneGeometry(600, 600),
+      new THREE.PlaneGeometry(760, 500),
       new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })
     );
     rayPlane.rotation.x = -Math.PI / 2;
@@ -367,73 +371,73 @@ export class SceneBuilder {
   }
 
   static _buildButtJoint(group, metalMat, topMat) {
-    // Spread plates apart so the joint gap is clearly visible
-    const plateGeo = new THREE.BoxGeometry(296, 6, 100);
-    const leftPlate  = new THREE.Mesh(plateGeo, [metalMat, metalMat, topMat, metalMat, metalMat, metalMat]);
-    const rightPlate = new THREE.Mesh(plateGeo, [metalMat, metalMat, topMat, metalMat, metalMat, metalMat]);
-    leftPlate.position.set(-154, 0, 0);
-    rightPlate.position.set(154, 0, 0);
-    leftPlate.castShadow = rightPlate.castShadow = true;
-    leftPlate.receiveShadow = rightPlate.receiveShadow = true;
-    group.add(leftPlate, rightPlate);
+    const plateGeo = new THREE.BoxGeometry(640, 8, 142);
+    const frontPlate = new THREE.Mesh(plateGeo, [metalMat, metalMat, topMat, metalMat, metalMat, metalMat]);
+    const backPlate  = new THREE.Mesh(plateGeo, [metalMat, metalMat, topMat, metalMat, metalMat, metalMat]);
+    frontPlate.position.set(0, 0, 76);
+    backPlate.position.set(0, 0, -76);
+    frontPlate.castShadow = backPlate.castShadow = true;
+    frontPlate.receiveShadow = backPlate.receiveShadow = true;
+    group.add(frontPlate, backPlate);
 
-    // Bright V-groove gap — orange-amber glow so it's unmistakably the weld zone
     const groove = new THREE.Mesh(
-      new THREE.BoxGeometry(12, 7, 100),
+      new THREE.BoxGeometry(640, 9, 10),
       new THREE.MeshStandardMaterial({
         color: 0xcc5500,
         emissive: 0xff6600,
-        emissiveIntensity: 1.2,
+        emissiveIntensity: 0.75,
         roughness: 0.9,
       })
     );
     groove.position.set(0, 0, 0);
     group.add(groove);
 
-    SceneBuilder._addJointMarkers(group, 0, 3);
+    SceneBuilder._addJointMarkers(group, 0, 5, 280);
 
     group.weldAxis = new THREE.Vector3(1, 0, 0);
-    group.weldZmin = -150; group.weldZmax = 150;
-    group.weldXrange = { min: -140, max: 140 };
-    group.surfaceY = 3;
+    group.weldZmin = -180; group.weldZmax = 180;
+    group.weldXrange = { min: -260, max: 260 };
+    group.weldZ = 0;
+    group.surfaceY = 5;
   }
 
   static _buildTJoint(group, metalMat, topMat) {
     const basePlate = new THREE.Mesh(
-      new THREE.BoxGeometry(300, 6, 150),
+      new THREE.BoxGeometry(640, 8, 170),
       [metalMat, metalMat, topMat, metalMat, metalMat, metalMat]
     );
     basePlate.position.set(0, 0, 0);
     basePlate.castShadow = basePlate.receiveShadow = true;
     group.add(basePlate);
 
-    const vertPlate = new THREE.Mesh(new THREE.BoxGeometry(300, 80, 6), metalMat);
-    vertPlate.position.set(0, 43, -40);
+    const vertPlate = new THREE.Mesh(new THREE.BoxGeometry(640, 54, 8), metalMat);
+    vertPlate.position.set(0, 31, -42);
     vertPlate.castShadow = vertPlate.receiveShadow = true;
     group.add(vertPlate);
 
     // Fillet zone highlight along the base of the vertical plate
     const filletLine = new THREE.Mesh(
-      new THREE.BoxGeometry(300, 3, 4),
-      new THREE.MeshStandardMaterial({ color: 0xcc5500, emissive: 0xff6600, emissiveIntensity: 1.2, roughness: 0.9 })
+      new THREE.BoxGeometry(640, 4, 5),
+      new THREE.MeshStandardMaterial({ color: 0xcc5500, emissive: 0xff6600, emissiveIntensity: 0.75, roughness: 0.9 })
     );
     filletLine.position.set(0, 3, -37);
     group.add(filletLine);
 
-    SceneBuilder._addJointMarkers(group, 0, 3);
+    SceneBuilder._addJointMarkers(group, -37, 5, 280);
     group.weldAxis = new THREE.Vector3(1, 0, 0);
-    group.weldXrange = { min: -140, max: 140 };
-    group.surfaceY = 3;
+    group.weldXrange = { min: -260, max: 260 };
+    group.weldZ = -37;
+    group.surfaceY = 5;
   }
 
   static _buildLapJoint(group, metalMat, topMat) {
-    const bottom = new THREE.Mesh(new THREE.BoxGeometry(300, 6, 120), metalMat);
+    const bottom = new THREE.Mesh(new THREE.BoxGeometry(640, 8, 150), metalMat);
     bottom.position.set(0, 0, 30);
     bottom.castShadow = bottom.receiveShadow = true;
     group.add(bottom);
 
     const top = new THREE.Mesh(
-      new THREE.BoxGeometry(300, 6, 120),
+      new THREE.BoxGeometry(640, 8, 150),
       [metalMat, metalMat, topMat, metalMat, metalMat, metalMat]
     );
     top.position.set(0, 6, -30);
@@ -442,52 +446,54 @@ export class SceneBuilder {
 
     // Edge of the top plate = weld location
     const edgeLine = new THREE.Mesh(
-      new THREE.BoxGeometry(300, 7, 4),
-      new THREE.MeshStandardMaterial({ color: 0xcc5500, emissive: 0xff6600, emissiveIntensity: 1.2, roughness: 0.9 })
+      new THREE.BoxGeometry(640, 8, 5),
+      new THREE.MeshStandardMaterial({ color: 0xcc5500, emissive: 0xff6600, emissiveIntensity: 0.75, roughness: 0.9 })
     );
     edgeLine.position.set(0, 6, 30);
     group.add(edgeLine);
 
-    SceneBuilder._addJointMarkers(group, 30, 6);
+    SceneBuilder._addJointMarkers(group, 30, 9, 280);
     group.weldAxis = new THREE.Vector3(1, 0, 0);
-    group.weldXrange = { min: -140, max: 140 };
-    group.surfaceY = 6;
+    group.weldXrange = { min: -260, max: 260 };
+    group.weldZ = 30;
+    group.surfaceY = 9;
   }
 
   static _buildCornerJoint(group, metalMat, topMat) {
     const hPlate = new THREE.Mesh(
-      new THREE.BoxGeometry(300, 6, 80),
+      new THREE.BoxGeometry(640, 8, 95),
       [metalMat, metalMat, topMat, metalMat, metalMat, metalMat]
     );
     hPlate.position.set(0, 0, 30);
     hPlate.castShadow = hPlate.receiveShadow = true;
     group.add(hPlate);
 
-    const vPlate = new THREE.Mesh(new THREE.BoxGeometry(300, 80, 6), metalMat);
-    vPlate.position.set(0, 43, -13);
+    const vPlate = new THREE.Mesh(new THREE.BoxGeometry(640, 54, 8), metalMat);
+    vPlate.position.set(0, 31, -13);
     vPlate.castShadow = vPlate.receiveShadow = true;
     group.add(vPlate);
 
     // Corner joint line
     const cornerLine = new THREE.Mesh(
-      new THREE.BoxGeometry(300, 3, 4),
-      new THREE.MeshStandardMaterial({ color: 0xcc5500, emissive: 0xff6600, emissiveIntensity: 1.2, roughness: 0.9 })
+      new THREE.BoxGeometry(640, 4, 5),
+      new THREE.MeshStandardMaterial({ color: 0xcc5500, emissive: 0xff6600, emissiveIntensity: 0.75, roughness: 0.9 })
     );
     cornerLine.position.set(0, 3, 30);
     group.add(cornerLine);
 
-    SceneBuilder._addJointMarkers(group, 30, 3);
+    SceneBuilder._addJointMarkers(group, 30, 5, 280);
     group.weldAxis = new THREE.Vector3(1, 0, 0);
-    group.weldXrange = { min: -140, max: 140 };
-    group.surfaceY = 3;
+    group.weldXrange = { min: -260, max: 260 };
+    group.weldZ = 30;
+    group.surfaceY = 5;
   }
 
   // Subtle joint guide — line + dot markers + clean label near the joint surface
-  static _addJointMarkers(group, jointZ, surfaceY) {
+  static _addJointMarkers(group, jointZ, surfaceY, halfLength = 148) {
     // Glowing line along the joint
     const lineGeo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-148, surfaceY + 1, jointZ),
-      new THREE.Vector3(148,  surfaceY + 1, jointZ),
+      new THREE.Vector3(-halfLength, surfaceY + 1, jointZ),
+      new THREE.Vector3(halfLength,  surfaceY + 1, jointZ),
     ]);
     group.add(new THREE.Line(lineGeo,
       new THREE.LineBasicMaterial({ color: 0x22ff88, transparent: true, opacity: 0.65 })
@@ -495,7 +501,7 @@ export class SceneBuilder {
 
     // Small sphere dots at intervals
     const dotMat = new THREE.MeshBasicMaterial({ color: 0x22ff88 });
-    [-120, -60, 0, 60, 120].forEach(x => {
+    [-240, -120, 0, 120, 240].forEach(x => {
       const dot = new THREE.Mesh(new THREE.SphereGeometry(3, 8, 6), dotMat);
       dot.position.set(x, surfaceY + 2, jointZ);
       group.add(dot);
@@ -516,7 +522,7 @@ export class SceneBuilder {
       new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.DoubleSide })
     );
     label.rotation.x = -1.05;
-    label.position.set(0, surfaceY + 5, jointZ + 38);
+    label.position.set(0, surfaceY + 5, jointZ + 48);
     group.add(label);
   }
 

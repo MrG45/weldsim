@@ -63,8 +63,8 @@ const STEPS = {
 
   MIG: [
     {
-      text:       'Position your torch 10–13mm above the metal (watch the arc gauge).',
-      why:        'Wire stickout — the distance from contact tip to workpiece — directly controls heat and arc stability.',
+      text:       'Position your true arc around 2-4mm above the metal (watch the arc gauge).',
+      why:        'Wire stickout is longer, but the live arc itself is short. Voltage and stickout together control heat and arc stability.',
       keyHint:    'Mouse DOWN = torch closer   Mouse UP = torch farther',
       gauge:      'arc',
       check:      s => s.arcLength >= 6 && s.arcLength <= 14,
@@ -96,7 +96,7 @@ const STEPS = {
       successMsg: 'Arc length controlled!',
     },
     {
-      text:       'Watch your WORK ANGLE gauge — aim for 90° on a flat butt joint.',
+      text:       'Watch your WORK ANGLE gauge - aim near 0° off perpendicular on a flat butt joint.',
       why:        'Work angle directs the arc into the joint. Off-angle = one side doesn\'t fuse properly.',
       keyHint:    'A / D = Work angle',
       gauge:      'work',
@@ -116,7 +116,7 @@ const STEPS = {
 
   FCAW: [
     {
-      text:       'Position torch about 10–15mm above the metal. FCAW uses a longer stickout than MIG.',
+      text:       'Position the true arc about 3-6mm above the metal. FCAW tolerates a little more length than MIG.',
       why:        'Longer stickout pre-heats the wire and helps the flux gases do their shielding job.',
       keyHint:    'Mouse DOWN = closer to metal',
       gauge:      'arc',
@@ -168,7 +168,7 @@ const STEPS = {
 
   TIG: [
     {
-      text:       'TIG needs a VERY SHORT arc — only 2–5mm. Move the mouse close to the metal.',
+      text:       'TIG needs a VERY SHORT arc - about 1-3mm. Move the mouse close to the metal.',
       why:        'A long TIG arc wanders, contaminates the tungsten, and produces poor penetration. Keep it tight.',
       keyHint:    'Mouse DOWN = shorter arc  (keep very close!)',
       gauge:      'arc',
@@ -253,7 +253,7 @@ export class TutorialOverlay {
     this._el.id = 'tutorial-overlay';
     this._el.style.cssText = `
       position: fixed;
-      bottom: 110px;
+      bottom: calc(var(--controlbar-h) + var(--statusbar-h) + 40px);
       left: 16px;
       width: 320px;
       background: rgba(8,12,10,0.93);

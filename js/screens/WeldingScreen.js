@@ -31,13 +31,15 @@ export class WeldingScreen {
     const { scene, workpieceGroup } = SceneBuilder.build(jointType);
     this._scene          = scene;
     this._workpieceGroup = workpieceGroup;
+    this._weldZ          = workpieceGroup.weldZ ?? 0;
+    this._weldRange      = workpieceGroup.weldXrange ?? { min: -260, max: 260 };
     this._camera         = SceneBuilder.createCamera();
     this._renderer       = SceneBuilder.createRenderer(this._canvas);
     this._composer       = SceneBuilder.createComposer(this._renderer, this._scene, this._camera);
 
     // Create torch mesh
     this._torchMesh = SceneBuilder.createTorchMesh(processId);
-    this._torchMesh.scale.setScalar(1.25);
+    this._torchMesh.scale.setScalar(1.35);
     scene.add(this._torchMesh);
 
     // Systems
@@ -55,8 +57,9 @@ export class WeldingScreen {
 
     // Session state
     this._defectLog   = [];
-    this._scoreAccum  = { arc: 0, speed: 0, work: 0, travel: 0, quality: 0 };
+    this._scoreAccum  = { arc: 0, speed: 0, heat: 0, work: 0, travel: 0, quality: 0 };
     this._scoreFrames = 0;
+    this._heatAccum   = 0;
     this._clock       = new THREE.Clock();
 
     // Show UI
@@ -104,10 +107,20 @@ export class WeldingScreen {
       position: torchState.position,
     };
     const params = this._behavior.update(rawParams, dt, this._hud);
+    params.position.z = this._weldZ;
+    const surfaceY = this._workpieceGroup.surfaceY ?? 0;
+    params.position.y += surfaceY;
+    const puddlePosition = params.position.clone();
+    puddlePosition.y = surfaceY + 0.45;
 
     // 3. Position the torch mesh
     this._torchMesh.position.copy(params.position);
-    this._torchMesh.position.y += 10; // offset so tip is at arc position
+    this._torchMesh.position.y += 2; // offset so glow/core sit at the live arc
+    this._torchMesh.rotation.set(
+      THREE.MathUtils.degToRad(params.travelAngle),
+      0,
+      THREE.MathUtils.degToRad(-params.workAngle),
+    );
 
     // Make glow disc face camera
     const glowDisc = this._torchMesh.getObjectByName('glowDisc');
@@ -131,22 +144,26 @@ export class WeldingScreen {
 
       // 4. Compute scores
       const effectiveAmps = params.amps * (params.pedalFactor ?? 1.0);
-      const scores  = scoreAll(params, this._processConfig);
       const heatInput = computeHeatInput(effectiveAmps, params.volts, Math.max(1, params.travelSpeed));
+      params.effectiveAmps = effectiveAmps;
+      params.heatInput = heatInput;
+      const scores  = scoreAll(params, this._processConfig);
 
       // Accumulate for session average
       this._scoreAccum.arc     += scores.arc;
       this._scoreAccum.speed   += scores.speed;
+      this._scoreAccum.heat    += scores.heat;
       this._scoreAccum.work    += scores.work;
       this._scoreAccum.travel  += scores.travel;
       this._scoreAccum.quality += scores.quality;
       this._scoreFrames++;
+      this._heatAccum += heatInput;
 
       // 5. Visual systems
-      this._weld.addSample(params.position, scores.quality, heatInput, this._processConfig);
+      this._weld.addSample(puddlePosition, scores.quality, heatInput, this._processConfig);
       this._sparks.emit(params.position, scores.quality, heatInput, params.arcLength, this._processConfig.arcLengthOptimal);
       this._arcLight.update(params, this._camera, scores.quality);
-      this._haz.applyHeat(params.position, heatInput);
+      this._haz.applyHeat(puddlePosition, heatInput);
 
       // 6. Audio
       this._audio.update(params.arcLength, this._processConfig.arcLengthOptimal, true, scores.quality);
@@ -155,7 +172,7 @@ export class WeldingScreen {
       this._hud.update(params, scores, heatInput, this._processConfig, dt);
 
       // 8. Defect detection (sample every 200ms worth of motion)
-      const defects = detectDefects({ ...params, heatInput }, this._processConfig);
+      const defects = detectDefects({ ...params, position: puddlePosition, heatInput }, this._processConfig);
       this._defectLog.push(...defects);
 
       // Spatter sound
@@ -193,14 +210,19 @@ export class WeldingScreen {
     const avgScores = {
       arc:     this._scoreAccum.arc     / frames,
       speed:   this._scoreAccum.speed   / frames,
+      heat:    this._scoreAccum.heat    / frames,
       work:    this._scoreAccum.work    / frames,
       travel:  this._scoreAccum.travel  / frames,
       quality: this._scoreAccum.quality / frames,
     };
+    const coverage = this._computeCoverage();
+    avgScores.quality = Math.max(0, Math.min(1, avgScores.quality * (0.55 + coverage * 0.45)));
 
     const avgAmps   = this._hud.amps;
     const avgVolts  = this._hud.volts;
-    const avgHeatInput = computeHeatInput(avgAmps, avgVolts, 225);
+    const avgHeatInput = this._scoreFrames > 0
+      ? this._heatAccum / frames
+      : computeHeatInput(avgAmps, avgVolts, 225);
 
     this._hud.hide();
     this._tutorial.hide();
@@ -212,8 +234,28 @@ export class WeldingScreen {
       jointType:  this._jointType,
       scores:     avgScores,
       heatInput:  avgHeatInput,
+      coverage,
       defectLog:  this._defectLog,
     });
+  }
+
+  _computeCoverage() {
+    const samples = this._weld?.getSamples?.() ?? [];
+    if (samples.length < 2) return 0;
+
+    const minX = this._weldRange.min;
+    const maxX = this._weldRange.max;
+    const span = Math.max(1, maxX - minX);
+    const bucketCount = 36;
+    const buckets = new Set();
+
+    for (const sample of samples) {
+      const t = (sample.position.x - minX) / span;
+      if (t < 0 || t > 1) continue;
+      buckets.add(Math.min(bucketCount - 1, Math.floor(t * bucketCount)));
+    }
+
+    return buckets.size / bucketCount;
   }
 
   destroy() {

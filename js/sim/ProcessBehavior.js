@@ -30,6 +30,8 @@ export class ProcessBehavior {
       case 'FCAW':  this._updateFCAW(params, dt, hud);  break;
     }
 
+    this._applyArcStability(params);
+
     // Effective amperage (TIG uses pedal factor)
     params.effectiveAmps = params.amps * (params.pedalFactor ?? 1.0);
 
@@ -42,7 +44,7 @@ export class ProcessBehavior {
       if (params.arcLength <= this.config.strikeDistance) {
         this.arcStruck = true;
       } else {
-        // Arc not struck yet — cancel arc
+        // Arc not struck yet - cancel arc
         params.arcOn = false;
         params.arcStrikeAttempted = true;
         return;
@@ -60,7 +62,7 @@ export class ProcessBehavior {
 
       if (this.electrodeLength <= 50 && !this._warnedElectrode) {
         this._warnedElectrode = true;
-        this._flashWarning('⚠ Replace electrode soon! (~50mm left)');
+        this._flashWarning('Replace electrode soon (~50mm left)');
       }
 
       if (this.electrodeLength <= 5) {
@@ -91,15 +93,35 @@ export class ProcessBehavior {
   }
 
   _updateMIG(params, dt, hud) {
-    // Wire stickout affects arc length measurement
-    // For simplicity: optimal stickout is already baked into arc length calibration
-    // No extra behavior needed beyond base physics
+    // Voltage trims true arc length: more voltage lengthens the arc, too little crowds it.
+    const voltageTrim = (params.volts - this.config.voltageDefault) * 0.16;
+    params.arcLength = Math.max(0.4, params.arcLength + voltageTrim);
   }
 
   _updateFCAW(params, dt, hud) {
     // FCAW must use drag technique; warning is handled in HUDController
     // Wind doesn't affect FCAW (self-shielded), so windFactor is always low
     params.windFactor = 0.0;
+    const voltageTrim = (params.volts - this.config.voltageDefault) * 0.14;
+    params.arcLength = Math.max(0.5, params.arcLength + voltageTrim);
+  }
+
+  _applyArcStability(params) {
+    if (!params.arcOn) return;
+
+    const startDistance = this.config.arcStartDistance ?? this.config.strikeDistance ?? this.config.maxLiveArcLength;
+    const maxLive = this.config.maxLiveArcLength ?? startDistance * 1.5;
+
+    if (params.arcLength > maxLive || params.arcLength > startDistance * 1.6) {
+      params.arcOn = false;
+      params.arcLost = true;
+      if (this.config.id === 'STICK') this.arcStruck = false;
+    }
+
+    if (params.arcLength < 0.7) {
+      params.contact = true;
+      if (this.config.id === 'TIG') params.tungstenDipped = true;
+    }
   }
 
   // Reset for a new weld

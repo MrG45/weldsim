@@ -35,13 +35,19 @@ export function travelAngleScore(measured, optimal) {
   return rangeScore(Math.abs(measured), optimal);
 }
 
+export function heatInputScore(measured, optimal) {
+  if (!optimal || measured <= 0) return 0;
+  return rangeScore(measured, optimal);
+}
+
 // Weighted composite quality (0–1)
 export function computeQuality(scores) {
   return (
-    scores.arc    * 0.30 +
-    scores.speed  * 0.30 +
-    scores.work   * 0.25 +
-    scores.travel * 0.15
+    scores.arc    * 0.26 +
+    scores.speed  * 0.24 +
+    scores.heat   * 0.22 +
+    scores.work   * 0.16 +
+    scores.travel * 0.12
   );
 }
 
@@ -51,26 +57,32 @@ export function scoreAll(params, processConfig) {
   const speed  = travelSpeedScore(params.travelSpeed, processConfig.travelSpeedOptimal);
   const work   = workAngleScore(params.workAngle, processConfig.workAngleOptimal);
   const travel = travelAngleScore(params.travelAngle, processConfig.travelAngleOptimal);
-  const quality = computeQuality({ arc, speed, work, travel });
-  return { arc, speed, work, travel, quality };
+  const heatInput = params.heatInput ?? computeHeatInput(
+    params.effectiveAmps ?? params.amps,
+    params.volts,
+    Math.max(1, params.travelSpeed),
+  );
+  const heat = heatInputScore(heatInput, processConfig.heatInputOptimal);
+  const quality = computeQuality({ arc, speed, heat, work, travel });
+  return { arc, speed, heat, work, travel, quality };
 }
 
 // Bead width in mm based on heat input and process
 export function beadWidth(heatInput, process) {
-  const base = 6 + heatInput * 18 * process.beadProfile.widthFactor;
-  return Math.max(3, Math.min(base, 25));
+  const base = 4.5 + heatInput * 4.5 * process.beadProfile.widthFactor;
+  return Math.max(2.5, Math.min(base, 18));
 }
 
 // Bead crown height in mm
 export function beadCrown(heatInput, quality, process) {
-  const base = 1 + heatInput * 7 * process.beadProfile.crownFactor;
+  const base = 0.7 + heatInput * 1.8 * process.beadProfile.crownFactor;
   const qualFactor = 0.5 + quality * 0.5;
   return Math.max(0.5, base * qualFactor);
 }
 
 // Penetration depth in mm
 export function penetrationDepth(heatInput, quality) {
-  return Math.max(0, heatInput * 12 * quality);
+  return Math.max(0, heatInput * 3.5 * quality);
 }
 
 // Grade letter from 0–1 score
