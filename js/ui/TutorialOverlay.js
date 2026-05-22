@@ -73,7 +73,7 @@ const STEPS = {
     {
       text:       'Hold LMB to start the arc. Tilt slightly forward — this is the PUSH technique.',
       why:        'MIG uses a push (forehand) angle. This gives better gas coverage and a flatter, wider bead.',
-      keyHint:    'LMB = Arc   W/S = Travel angle',
+      keyHint:    'LMB = Arc on   W / S = Travel angle',
       gauge:      null,
       check:      s => s.arcOn,
       successMsg: 'Wire is feeding!',
@@ -253,10 +253,12 @@ export class TutorialOverlay {
     this._el.id = 'tutorial-overlay';
     this._el.style.cssText = `
       position: fixed;
-      bottom: calc(var(--controlbar-h) + var(--statusbar-h) + 40px);
-      left: 16px;
-      width: 320px;
-      background: rgba(8,12,10,0.93);
+      top: 260px;
+      bottom: auto;
+      left: 12px;
+      transform: none;
+      width: 230px;
+      background: linear-gradient(180deg, rgba(8,14,12,0.94), rgba(5,10,16,0.88));
       border: 1px solid #22c55e;
       border-radius: 12px;
       padding: 0;
@@ -292,14 +294,14 @@ export class TutorialOverlay {
       background: none;
       border: none;
       border-top: 1px solid rgba(34,197,94,0.2);
-      color: #445544;
+      color: #9cb89c;
       font-family: 'Courier New', monospace;
       font-size: 11px;
       cursor: pointer;
       letter-spacing: .05em;
     `;
     skip.addEventListener('mouseenter', () => { skip.style.color = '#22c55e'; });
-    skip.addEventListener('mouseleave', () => { skip.style.color = '#445544'; });
+    skip.addEventListener('mouseleave', () => { skip.style.color = '#9cb89c'; });
     skip.addEventListener('click', () => this._finish(true));
     this._el.appendChild(skip);
 
@@ -363,15 +365,15 @@ export class TutorialOverlay {
     this._content.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <span style="color:#22c55e;font-size:10px;letter-spacing:.12em;">STEP ${stepNum} / ${total}</span>
-        <span style="color:#333;font-size:10px;">${this._processId}</span>
+        <span style="color:#8fb08f;font-size:10px;">${this._processId}</span>
       </div>
       <div style="color:#e8e8f0;font-size:13px;font-weight:bold;line-height:1.45;margin-bottom:8px;">
         ${step.text}
       </div>
-      <div style="color:#6b8a6b;font-size:11px;line-height:1.5;margin-bottom:10px;">
+      <div style="color:#b5cdb5;font-size:11px;line-height:1.5;margin-bottom:10px;">
         ${step.why}
       </div>
-      <div style="background:#0d1a0d;border:1px solid #1a3a1a;border-radius:4px;padding:5px 9px;font-size:11px;color:#44aa44;letter-spacing:.04em;">
+      <div style="background:#0d1a0d;border:1px solid #2a7a35;border-radius:4px;padding:5px 9px;font-size:11px;color:#8ff59a;letter-spacing:.04em;">
         ${step.keyHint}
       </div>
     `;

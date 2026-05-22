@@ -32,15 +32,38 @@
    Title Screen
 ═══════════════════════════════════════ */
 .title-content {
+  position: relative;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--gap-lg);
+  gap: var(--gap-md);
+  width: min(620px, calc(100vw - 48px));
+  padding: clamp(28px, 6vh, 58px) clamp(24px, 5vw, 56px);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.075), rgba(255,255,255,0.012) 34%),
+    radial-gradient(circle at 50% 0%, rgba(99,245,117,0.18), transparent 40%),
+    rgba(5, 12, 20, 0.68);
+  border: 1px solid rgba(145,185,235,0.33);
+  border-radius: 18px;
+  box-shadow: 0 28px 80px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,255,255,0.08);
+  backdrop-filter: blur(11px);
+}
+
+.title-content::before {
+  content: "TRAINING BOOTH ONLINE";
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  color: var(--color-ok);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  opacity: .78;
 }
 
 .logo-mark {
-  font-size: 64px;
+  font-size: 58px;
   filter: drop-shadow(0 0 20px var(--arc-blue));
   animation: arc-pulse 2s ease-in-out infinite;
 }
@@ -81,10 +104,16 @@
 /* ═══════════════════════════════════════
    Process Select
 ═══════════════════════════════════════ */
+#screen-process {
+  justify-content: flex-start;
+  padding-top: clamp(14px, 2.4vh, 24px);
+  padding-bottom: clamp(22px, 3.6vh, 36px);
+}
+
 .process-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(240px, 1fr));
-  gap: var(--gap-md);
+  gap: clamp(10px, 1.8vh, var(--gap-md));
   padding: 0 var(--gap-xl);
   max-width: 820px;
   width: 100%;
@@ -92,8 +121,8 @@
 
 .process-brief {
   width: min(820px, calc(100% - 80px));
-  margin: 0 0 var(--gap-md);
-  padding: 14px 18px;
+  margin: 0 0 clamp(10px, 1.8vh, var(--gap-md));
+  padding: clamp(10px, 1.8vh, 14px) 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -141,14 +170,14 @@
 .process-card {
   position: relative;
   overflow: hidden;
-  min-height: 252px;
+  min-height: clamp(206px, 29vh, 242px);
   background:
     linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0) 32%),
     radial-gradient(circle at 85% 10%, rgba(99,245,117,0.16), transparent 32%),
     rgba(8, 16, 26, 0.62);
   border: 1px solid rgba(145, 185, 235, 0.26);
   border-radius: 12px;
-  padding: var(--gap-lg);
+  padding: clamp(15px, 2.4vh, 22px);
   cursor: pointer;
   box-shadow: 0 18px 45px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.08);
   backdrop-filter: blur(10px);
@@ -188,23 +217,50 @@
 }
 
 .process-icon {
-  width: 54px;
-  height: 54px;
-  margin-bottom: var(--gap-sm);
+  position: relative;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 7px;
   border: 1px solid rgba(99,245,117,0.28);
   border-radius: 12px;
-  background: rgba(99,245,117,0.06);
+  background: linear-gradient(145deg, rgba(99,245,117,0.11), rgba(95,183,255,0.06));
   box-shadow: inset 0 0 22px rgba(99,245,117,0.07), 0 0 18px rgba(99,245,117,0.11);
+  clip-path: none;
 }
 
-.process-icon-stick {
-  clip-path: polygon(20% 18%, 70% 8%, 82% 24%, 60% 50%, 82% 82%, 30% 72%, 18% 46%);
-  background: linear-gradient(135deg, rgba(99,245,117,.92), rgba(255,195,62,.72));
+.process-icon::before,
+.process-icon::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
-.process-icon-mig { background: radial-gradient(circle at 62% 42%, transparent 0 18%, rgba(99,245,117,.92) 19% 25%, transparent 26% 36%, rgba(95,183,255,.72) 37% 45%, transparent 46%), rgba(99,245,117,0.06); }
-.process-icon-fcaw { background: repeating-linear-gradient(135deg, rgba(99,245,117,.78) 0 4px, transparent 4px 10px), rgba(99,245,117,0.06); }
-.process-icon-tig { background: conic-gradient(from 45deg, transparent, rgba(99,245,117,.95), transparent 34%, rgba(255,255,255,.7), transparent 66%, rgba(95,183,255,.65), transparent), rgba(99,245,117,0.06); }
+.process-icon::before {
+  width: 28px;
+  height: 6px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(99,245,117,.95), rgba(255,195,62,.86));
+  box-shadow: 0 0 12px rgba(99,245,117,.34);
+}
+
+.process-icon::after {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--arc-white);
+  box-shadow: 0 0 16px var(--arc-blue), 0 0 8px var(--color-ok);
+}
+
+.process-icon-stick { background: linear-gradient(145deg, rgba(99,245,117,0.11), rgba(95,183,255,0.06)); }
+.process-icon-mig { background: linear-gradient(145deg, rgba(99,245,117,0.11), rgba(95,183,255,0.06)); }
+.process-icon-fcaw { background: linear-gradient(145deg, rgba(99,245,117,0.11), rgba(95,183,255,0.06)); }
+.process-icon-tig { background: linear-gradient(145deg, rgba(99,245,117,0.11), rgba(95,183,255,0.06)); }
+.process-icon-mig::before { width: 25px; transform: translate(-50%, -50%) rotate(-18deg); }
+.process-icon-fcaw::before { width: 30px; background: repeating-linear-gradient(90deg, rgba(99,245,117,.96) 0 5px, rgba(255,195,62,.82) 5px 9px); transform: translate(-50%, -50%) rotate(24deg); }
+.process-icon-tig::before { width: 24px; height: 4px; transform: translate(-50%, -50%) rotate(-45deg); background: linear-gradient(90deg, rgba(95,183,255,.9), rgba(99,245,117,.95)); }
 
 .process-card h3 {
   font-size: 1.1rem;
@@ -223,8 +279,8 @@
 .process-desc {
   font-size: 12px;
   color: var(--text-muted);
-  line-height: 1.5;
-  margin-bottom: var(--gap-md);
+  line-height: 1.42;
+  margin-bottom: clamp(8px, 1.4vh, var(--gap-md));
 }
 
 .difficulty {
@@ -247,6 +303,32 @@
 @media (max-width: 920px) {
   .process-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
   .process-brief { width: min(720px, calc(100% - 32px)); }
+}
+
+@media (max-height: 760px) and (min-width: 700px) {
+  #screen-process { padding-top: 10px; padding-bottom: 24px; }
+  .screen-header { margin-bottom: 8px; }
+  .screen-header h2 { font-size: 1.35rem; }
+  .process-brief { padding-top: 8px; padding-bottom: 8px; margin-bottom: 9px; }
+  .process-brief p { line-height: 1.25; }
+  .brief-kicker { margin-bottom: 1px; }
+  .process-grid { gap: 9px; }
+  .process-card { min-height: 178px; padding: 12px 14px; }
+  .process-icon { width: 38px; height: 38px; margin-bottom: 5px; border-radius: 10px; }
+  .process-card h3 { font-size: 1rem; }
+  .process-sub { margin-bottom: 4px; }
+  .process-desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.28;
+    margin-bottom: 6px;
+  }
+  .difficulty { margin-bottom: 5px; }
+  .dot { width: 16px; height: 5px; }
+  .btn-process { margin-top: 3px; padding-top: 7px; padding-bottom: 7px; }
 }
 
 @media (max-width: 560px) {
