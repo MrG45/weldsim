@@ -1,0 +1,231 @@
+/* ── Gauge groups ── */
+.gauge-group {
+  background: rgba(20,20,24,0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--gap-sm) var(--gap-md);
+  min-width: 160px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Tutorial highlight — pulsing green glow */
+.gauge-group.tutorial-highlight {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px #22c55e, 0 0 18px rgba(34,197,94,0.55);
+  animation: gauge-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes gauge-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px #22c55e, 0 0 18px rgba(34,197,94,0.55); }
+  50%       { box-shadow: 0 0 0 3px #22c55e, 0 0 30px rgba(34,197,94,0.85); }
+}
+
+.gauge-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.gauge-value {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 4px;
+  font-family: var(--font-ui);
+}
+
+/* ── Arc length needle gauge ── */
+.arc-gauge {
+  position: relative;
+  height: 54px;
+}
+
+.gauge-track {
+  display: flex;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.gauge-zone {
+  flex: 1;
+}
+
+.zone-low  { background: var(--color-danger); }
+.zone-ok   { background: var(--color-ok); flex: 2; }
+.zone-high { background: var(--color-warn); }
+
+.gauge-needle {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 3px;
+  height: 20px;
+  background: var(--arc-white);
+  border-radius: 2px;
+  transform: translateX(-50%);
+  transition: left 0.05s linear;
+  box-shadow: 0 0 6px var(--arc-white);
+}
+
+/* ── Travel speed bar gauge ── */
+.bar-gauge {
+  position: relative;
+  height: var(--bar-h);
+  background: var(--bg-panel);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.bar-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 0%;
+  background: var(--color-info);
+  transition: width 0.08s linear, background 0.15s ease;
+  border-radius: var(--r-sm);
+}
+
+.bar-fill.ok   { background: var(--color-ok); }
+.bar-fill.warn { background: var(--color-warn); }
+.bar-fill.bad  { background: var(--color-danger); }
+
+.bar-zones {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.bar-zone { flex: 1; border-right: 1px dashed rgba(255,255,255,0.1); }
+.bar-zone:last-child { border-right: none; }
+
+/* ── Angle displays ── */
+.angle-display {
+  position: relative;
+  width: 80px;
+  height: 44px;
+  margin: 0 auto;
+}
+
+.angle-arc {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 80px;
+  border: 3px solid var(--border-light);
+  border-bottom: none;
+  border-radius: 80px 80px 0 0;
+}
+
+.angle-needle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  height: 38px;
+  background: var(--color-ok);
+  transform-origin: bottom center;
+  transform: translateX(-50%) rotate(0deg);
+  transition: transform 0.1s ease;
+  border-radius: 2px;
+}
+
+/* ── HUD bottom bar ── */
+.process-badge {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  border-radius: var(--r-sm);
+  background: var(--process-mig);
+  color: #000;
+}
+
+.process-badge[data-process="STICK"] { background: var(--process-stick); }
+.process-badge[data-process="MIG"]   { background: var(--process-mig); }
+.process-badge[data-process="FCAW"]  { background: var(--process-fcaw); color: #fff; }
+.process-badge[data-process="TIG"]   { background: var(--process-tig); color: #000; }
+
+#heat-input-display, #quality-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+#heat-input-display span:last-child,
+#quality-display span:last-child {
+  font-size: 15px;
+  color: var(--text);
+  font-weight: bold;
+}
+
+/* ── Warning banner ── */
+.warning-banner {
+  position: fixed;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(239,68,68,0.15);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
+  padding: var(--gap-sm) var(--gap-lg);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  text-align: center;
+  pointer-events: none;
+  animation: blink 1s step-end infinite;
+  max-width: 300px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ── PPE Reminder ── */
+#ppe-reminder {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* ── TIG extra indicator ── */
+#tig-pedal-display {
+  display: none;
+  align-items: center;
+  gap: var(--gap-sm);
+  color: var(--process-tig);
+}
+
+#tig-pedal-display.visible { display: flex; }
+
+/* ── Pass progress bar ── */
+.pass-label { font-size: 9px; color: var(--text-dim); letter-spacing: .14em; text-transform: uppercase; text-align: center; }
+.pass-track { position: relative; width: 320px; height: 6px; background: var(--bg-card); border-radius: 3px; }
+.pass-dot   { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; border-radius: 50%; background: var(--border-light); border: 2px solid var(--bg-card); }
+.pass-dot:nth-child(1) { left:   0% }
+.pass-dot:nth-child(2) { left:  25% }
+.pass-dot:nth-child(3) { left:  50% }
+.pass-dot:nth-child(4) { left:  75% }
+.pass-dot:nth-child(5) { left: 100% }
+.pass-dot span { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); font-size: 8px; color: var(--text-dim); white-space: nowrap; letter-spacing: .08em; }
+.pass-torch-indicator { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; border-radius: 50%; background: var(--color-ok); box-shadow: 0 0 8px var(--color-ok); transition: left .06s linear; }
+
+/* ── Larger gauge values ── */
+.gauge-value-lg { font-size: 18px; color: var(--color-ok); font-weight: bold; text-align: center; margin-top: 6px; }
+#val-work-angle, #val-travel-angle { font-size: 17px; font-weight: bold; color: var(--text); }
+
+/* ── Settings modal panel ── */
+.settings-panel { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--r-lg); padding: var(--gap-lg); min-width: 280px; }
+.settings-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: var(--gap-md); }
+.settings-header button { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 0; }
+.settings-header button:hover { color: var(--text); }
+.settings-body { display: flex; flex-direction: column; gap: var(--gap-sm); }
+.settings-row { display: flex; align-items: center; gap: var(--gap-sm); color: var(--text-muted); font-size: 12px; font-family: var(--font-ui); }
+.settings-row span:first-child { width: 100px; flex-shrink: 0; }
+.settings-row input[type=range] { flex: 1; accent-color: var(--color-ok); }

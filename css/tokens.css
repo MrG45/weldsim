@@ -1,0 +1,60 @@
+:root {
+  /* Dark industrial palette */
+  --bg:            #0a0a0c;
+  --bg-surface:    #141418;
+  --bg-panel:      #1c1c22;
+  --bg-card:       #242430;
+  --bg-card-hover: #2e2e3c;
+
+  --border:        #333340;
+  --border-light:  #44445a;
+
+  --text:          #e8e8f0;
+  --text-muted:    #888899;
+  --text-dim:      #555566;
+
+  /* Status colors */
+  --color-ok:      #22c55e;
+  --color-warn:    #f59e0b;
+  --color-danger:  #ef4444;
+  --color-info:    #3b82f6;
+
+  /* Welding-specific */
+  --arc-blue:      #88aaff;
+  --arc-white:     #ffffff;
+  --weld-hot:      #ff6b00;
+  --weld-warm:     #ffaa44;
+  --weld-cool:     #c0a060;
+  --metal:         #6b7280;
+  --metal-light:   #9ca3af;
+
+  /* Process colors */
+  --process-stick: #f59e0b;
+  --process-mig:   #3b82f6;
+  --process-fcaw:  #8b5cf6;
+  --process-tig:   #22c55e;
+
+  /* Typography */
+  --font-ui:       'Courier New', 'Lucida Console', monospace;
+  --font-display:  Impact, 'Arial Narrow', sans-serif;
+
+  /* Spacing */
+  --gap-xs: 4px;
+  --gap-sm: 8px;
+  --gap-md: 16px;
+  --gap-lg: 24px;
+  --gap-xl: 40px;
+
+  /* Radii */
+  --r-sm:  4px;
+  --r-md:  8px;
+  --r-lg:  16px;
+
+  /* Gauge dimensions */
+  --gauge-h: 80px;
+  --bar-h:   24px;
+
+  /* Bottom bar heights */
+  --statusbar-h:  52px;
+  --controlbar-h: 54px;
+}

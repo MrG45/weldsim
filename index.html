@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WeldSim — Learn to Weld</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/hud.css">
+  <link rel="stylesheet" href="css/screens.css">
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- THREE.JS CANVAS — always behind everything -->
+  <canvas id="weld-canvas"></canvas>
+
+  <!-- Vignette — always on top of canvas, behind UI -->
+  <div id="vignette"></div>
+
+  <!-- HUD OVERLAY — gauges and real-time feedback, shown only during welding -->
+  <div id="hud-overlay" class="hidden">
+
+    <!-- Weld pass progress bar -->
+    <div id="hud-pass-bar">
+      <div class="pass-label">PASS <span id="pass-current">1</span> OF <span id="pass-total">1</span></div>
+      <div class="pass-track">
+        <div class="pass-dot"><span>START</span></div>
+        <div class="pass-dot"></div>
+        <div class="pass-dot"></div>
+        <div class="pass-dot"></div>
+        <div class="pass-dot"><span>END</span></div>
+        <div class="pass-torch-indicator" id="pass-torch-dot"></div>
+      </div>
+    </div>
+
+    <div id="hud-top-left">
+      <div class="gauge-group">
+        <div class="gauge-label">ARC LENGTH</div>
+        <div class="gauge arc-gauge" id="gauge-arc">
+          <div class="gauge-track">
+            <div class="gauge-zone zone-low"></div>
+            <div class="gauge-zone zone-ok"></div>
+            <div class="gauge-zone zone-high"></div>
+          </div>
+          <div class="gauge-needle" id="needle-arc"></div>
+          <div class="gauge-value gauge-value-lg" id="val-arc">0 mm</div>
+        </div>
+      </div>
+
+      <div class="gauge-group">
+        <div class="gauge-label">TRAVEL SPEED</div>
+        <div class="bar-gauge" id="gauge-speed">
+          <div class="bar-fill" id="bar-speed"></div>
+          <div class="bar-zones">
+            <div class="bar-zone bz-low"></div>
+            <div class="bar-zone bz-ok"></div>
+            <div class="bar-zone bz-high"></div>
+          </div>
+          <div class="gauge-value gauge-value-lg" id="val-speed">0 cm/min</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="hud-top-right">
+      <div class="gauge-group">
+        <div class="gauge-label">WORK ANGLE</div>
+        <div class="angle-display" id="display-work-angle">
+          <div class="angle-arc"></div>
+          <div class="angle-needle" id="needle-work"></div>
+          <div class="gauge-value" id="val-work-angle">90°</div>
+        </div>
+      </div>
+
+      <div class="gauge-group">
+        <div class="gauge-label">TRAVEL ANGLE</div>
+        <div class="angle-display" id="display-travel-angle">
+          <div class="angle-arc"></div>
+          <div class="angle-needle" id="needle-travel"></div>
+          <div class="gauge-value" id="val-travel-angle">15°</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="warning-banner" class="warning-banner hidden"></div>
+
+    <div id="hud-controls-hint">
+      <div class="ctrl-title">CONTROLS</div>
+      <div class="ctrl-group">
+        <div class="ctrl-row ctrl-primary">
+          <div class="ctrl-icon">
+            <svg viewBox="0 0 16 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+              <rect x="1" y="7" width="14" height="14" rx="7"/>
+              <line x1="8" y1="7" x2="8" y2="15"/>
+              <path d="M4 3L2 5L4 7M12 3L14 5L12 7M2 5H14" stroke-width="1.1"/>
+            </svg>
+          </div>
+          <span>Move Along Joint</span>
+        </div>
+        <div class="ctrl-row ctrl-primary">
+          <div class="ctrl-icon">
+            <svg viewBox="0 0 16 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+              <rect x="1" y="7" width="14" height="14" rx="7"/>
+              <line x1="8" y1="7" x2="8" y2="15"/>
+              <path d="M8 1L8 6M5.5 3L8 1L10.5 3" stroke-width="1.1"/>
+              <path d="M8 20L8 24M5.5 22L8 24L10.5 22" stroke-width="1.1"/>
+            </svg>
+          </div>
+          <span>Arc Height (Closer/Farther)</span>
+        </div>
+        <div class="ctrl-row ctrl-primary">
+          <kbd>LMB</kbd><span>Arc On</span>
+        </div>
+        <div class="ctrl-row ctrl-primary" id="ctrl-hint-scroll-base">
+          <div class="ctrl-icon">
+            <svg viewBox="0 0 16 22" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+              <rect x="1" y="7" width="14" height="14" rx="7"/>
+              <line x1="8" y1="7" x2="8" y2="13"/>
+              <rect x="6.5" y="9" width="3" height="5" rx="1.5" fill="currentColor" stroke="none" opacity="0.6"/>
+            </svg>
+          </div>
+          <span>Fine-tune Arc Height</span>
+        </div>
+      </div>
+      <div class="ctrl-divider"></div>
+      <div class="ctrl-group">
+        <div class="ctrl-row">
+          <kbd>A / D</kbd><span>Work Angle</span>
+        </div>
+        <div class="ctrl-row">
+          <kbd>W / S</kbd><span>Travel Angle</span>
+        </div>
+        <div class="ctrl-row" id="ctrl-hint-tig" style="display:none">
+          <kbd>Q</kbd><span>Filler Rod (TIG)</span>
+        </div>
+        <div class="ctrl-row" id="ctrl-hint-scroll-tig" style="display:none">
+          <kbd>Scroll</kbd><span>Foot Pedal / Amps (TIG)</span>
+        </div>
+        <div class="ctrl-row">
+          <kbd>Esc</kbd><span>Pause / Menu</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREENS LAYER — all UI screens -->
+  <div id="screens">
+
+    <!-- TITLE SCREEN -->
+    <div id="screen-title" class="screen active">
+      <div class="title-content">
+        <div class="logo-mark">⚡</div>
+        <h1 class="game-title">WELDSIM</h1>
+        <p class="game-tagline">Learn to weld. For real.</p>
+        <div class="title-buttons">
+          <button class="btn btn-primary" id="btn-start">Start Learning</button>
+          <button class="btn btn-secondary" id="btn-practice">Free Practice</button>
+        </div>
+        <div class="title-footer">
+          <span>All 4 processes • Real physics • Expert feedback</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROCESS SELECT SCREEN -->
+    <div id="screen-process" class="screen hidden">
+      <div class="screen-header">
+        <button class="btn-back" id="btn-back-process">← Back</button>
+        <h2>Choose Your Process</h2>
+      </div>
+      <div class="process-grid">
+        <div class="process-card" data-process="STICK">
+          <div class="process-icon">🔥</div>
+          <h3>Stick Welding</h3>
+          <p class="process-sub">SMAW — Shielded Metal Arc</p>
+          <p class="process-desc">The classic. Learn arc striking, electrode control, and slag removal. Best starting point for beginners.</p>
+          <div class="difficulty">
+            <span class="diff-label">Difficulty:</span>
+            <span class="diff-dots">
+              <span class="dot filled"></span><span class="dot filled"></span><span class="dot"></span><span class="dot"></span>
+            </span>
+          </div>
+          <button class="btn btn-process">Select</button>
+        </div>
+        <div class="process-card" data-process="MIG">
+          <div class="process-icon">🌀</div>
+          <h3>MIG Welding</h3>
+          <p class="process-sub">GMAW — Gas Metal Arc</p>
+          <p class="process-desc">Wire-feed welding with gas shielding. Most common in industry. Master push technique and wire stickout.</p>
+          <div class="difficulty">
+            <span class="diff-label">Difficulty:</span>
+            <span class="diff-dots">
+              <span class="dot filled"></span><span class="dot filled"></span><span class="dot"></span><span class="dot"></span>
+            </span>
+          </div>
+          <button class="btn btn-process">Select</button>
+        </div>
+        <div class="process-card" data-process="FCAW">
+          <div class="process-icon">💨</div>
+          <h3>Flux-Core</h3>
+          <p class="process-sub">FCAW — Flux-Cored Arc</p>
+          <p class="process-desc">Drag technique, self-shielded. Works outdoors. Learn flux management and heavy penetration control.</p>
+          <div class="difficulty">
+            <span class="diff-label">Difficulty:</span>
+            <span class="diff-dots">
+              <span class="dot filled"></span><span class="dot filled"></span><span class="dot filled"></span><span class="dot"></span>
+            </span>
+          </div>
+          <button class="btn btn-process">Select</button>
+        </div>
+        <div class="process-card" data-process="TIG">
+          <div class="process-icon">✨</div>
+          <h3>TIG Welding</h3>
+          <p class="process-sub">GTAW — Gas Tungsten Arc</p>
+          <p class="process-desc">Torch in one hand, filler rod in the other. Foot pedal controls amperage. The most precise process.</p>
+          <div class="difficulty">
+            <span class="diff-label">Difficulty:</span>
+            <span class="diff-dots">
+              <span class="dot filled"></span><span class="dot filled"></span><span class="dot filled"></span><span class="dot filled"></span>
+            </span>
+          </div>
+          <button class="btn btn-process">Select</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- THEORY SCREEN -->
+    <div id="screen-theory" class="screen hidden">
+      <div class="screen-header">
+        <button class="btn-back" id="btn-back-theory">← Back</button>
+        <h2 id="theory-title">Theory</h2>
+        <div class="slide-counter"><span id="slide-current">1</span> / <span id="slide-total">5</span></div>
+      </div>
+      <div class="theory-body">
+        <div id="theory-content" class="theory-content"></div>
+      </div>
+      <div class="theory-nav">
+        <button class="btn btn-secondary" id="btn-theory-prev" disabled>← Previous</button>
+        <div class="slide-dots" id="slide-dots"></div>
+        <button class="btn btn-primary" id="btn-theory-next">Next →</button>
+      </div>
+    </div>
+
+    <!-- PPE QUIZ SCREEN -->
+    <div id="screen-ppe" class="screen hidden">
+      <div class="screen-header">
+        <h2>Safety First — PPE Quiz</h2>
+        <p>Pass 4 out of 5 to enter the welding booth</p>
+      </div>
+      <div class="quiz-body">
+        <div class="quiz-progress">
+          <div class="quiz-progress-bar" id="quiz-progress-bar"></div>
+        </div>
+        <div id="quiz-question-block">
+          <p class="quiz-question" id="quiz-question"></p>
+          <div class="quiz-options" id="quiz-options"></div>
+          <div class="quiz-feedback hidden" id="quiz-feedback"></div>
+        </div>
+        <div class="quiz-score hidden" id="quiz-score">
+          <div class="score-circle" id="score-circle"></div>
+          <p id="score-message"></p>
+          <button class="btn btn-primary" id="btn-quiz-continue">Enter Booth</button>
+          <button class="btn btn-secondary hidden" id="btn-quiz-retry">Try Again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOINT SELECT (shown before welding screen) -->
+    <div id="screen-joint" class="screen hidden">
+      <div class="screen-header">
+        <button class="btn-back" id="btn-back-joint">← Back</button>
+        <h2>Choose Joint Type</h2>
+      </div>
+      <div class="joint-grid">
+        <div class="joint-card active" data-joint="BUTT">
+          <div class="joint-diagram butt-diagram"></div>
+          <h3>Butt Joint</h3>
+          <p>Two plates edge-to-edge. V-groove gap. Most common.</p>
+        </div>
+        <div class="joint-card" data-joint="T">
+          <div class="joint-diagram t-diagram"></div>
+          <h3>T-Joint</h3>
+          <p>Vertical plate on horizontal. Fillet weld at junction.</p>
+        </div>
+        <div class="joint-card" data-joint="LAP">
+          <div class="joint-diagram lap-diagram"></div>
+          <h3>Lap Joint</h3>
+          <p>Plates overlapping 25mm. Fillet on overlapping edge.</p>
+        </div>
+        <div class="joint-card" data-joint="CORNER">
+          <div class="joint-diagram corner-diagram"></div>
+          <h3>Corner Joint</h3>
+          <p>Two plates at 90° forming an L-shape.</p>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:2rem;">
+        <button class="btn btn-primary" id="btn-start-weld">Start Welding →</button>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="screen-results" class="screen hidden">
+      <div class="screen-header">
+        <h2>Weld Complete</h2>
+      </div>
+      <div class="results-body">
+        <div class="results-grade-block">
+          <div class="grade-circle" id="results-grade">—</div>
+          <div class="results-score-text" id="results-score-text">Score: 0%</div>
+        </div>
+        <div class="results-breakdown" id="results-breakdown"></div>
+        <div class="results-defects" id="results-defects"></div>
+        <div class="results-actions">
+          <button class="btn btn-secondary" id="btn-replay">Weld Again</button>
+          <button class="btn btn-secondary" id="btn-change-process">Change Process</button>
+          <button class="btn btn-primary" id="btn-next-lesson">Next Lesson →</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- STATUS BAR — full-width info bar above the controls bar -->
+  <div id="hud-status-bar" class="hidden">
+
+    <div class="sb-section sb-process">
+      <svg class="sb-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M3 11 L9 11 L12 7 L17 7"/>
+        <path d="M9 11 L11 14"/>
+        <circle cx="11" cy="14" r="1.2" fill="currentColor" stroke="none"/>
+      </svg>
+      <div class="sb-stack">
+        <div class="sb-label">PROCESS</div>
+        <div class="sb-value" id="sb-process-name">MIG</div>
+      </div>
+    </div>
+
+    <div class="sb-sep"></div>
+
+    <div class="sb-section sb-heat">
+      <div class="sb-label">HEAT INPUT</div>
+      <div class="sb-value" id="sb-val-heat">0.00 kJ/mm</div>
+      <div class="sb-sublabel" id="sb-heat-range">IDEAL 0.8 – 1.5 kJ/mm</div>
+      <div class="sb-minibar-track"><div class="sb-minibar-fill" id="sb-heat-bar"></div></div>
+    </div>
+
+    <div class="sb-sep"></div>
+
+    <div class="sb-section sb-quality">
+      <div class="sb-label">QUALITY</div>
+      <div class="sb-value" id="sb-val-quality">—</div>
+      <div class="sb-minibar-track"><div class="sb-minibar-fill" id="sb-quality-bar"></div></div>
+    </div>
+
+    <div class="sb-sep"></div>
+
+    <div class="sb-section sb-volts">
+      <div class="sb-label">VOLTS</div>
+      <div class="sb-value" id="sb-val-volts">21 V</div>
+      <input type="range" class="sb-inline-slider" id="ctrl-volts" min="14" max="35" value="21">
+    </div>
+
+    <div class="sb-sep"></div>
+
+    <div class="sb-section sb-amps">
+      <div class="sb-label">AMPS</div>
+      <div class="sb-value" id="sb-val-amps">160 A</div>
+      <input type="range" class="sb-inline-slider" id="ctrl-amps" min="50" max="300" value="160">
+    </div>
+
+    <div class="sb-sep" id="sb-wire-sep"></div>
+
+    <div class="sb-section sb-wire" id="sb-wire-section">
+      <div class="sb-label">WIRE SPEED</div>
+      <div class="sb-value" id="sb-val-wire">6.2 m/min</div>
+    </div>
+
+    <div class="sb-sep" id="sb-gas-sep"></div>
+
+    <div class="sb-section sb-gas" id="sb-gas-section">
+      <div class="sb-label">GAS FLOW</div>
+      <div class="sb-value" id="sb-val-gas">15 L/min</div>
+    </div>
+
+  </div><!-- /hud-status-bar -->
+
+  <!-- IN-WELD CONTROLS BAR -->
+  <div id="weld-controls" class="hidden">
+
+    <div class="wc-left">
+      <div class="ppe-badge"><span class="ppe-icon">⛑</span><span class="ppe-text">HELMET ON</span></div>
+      <div class="ppe-badge"><span class="ppe-icon">🧤</span><span class="ppe-text">GLOVES ON</span></div>
+      <div class="ppe-badge"><span class="ppe-icon">🥼</span><span class="ppe-text">JACKET ON</span></div>
+    </div>
+
+    <div class="wc-center-left">
+      <button class="wc-settings-btn" id="btn-settings">⚙ SETTINGS</button>
+    </div>
+
+    <div class="wc-center">
+      <div class="wc-select-group">
+        <span class="wc-select-label">MATERIAL</span>
+        <select class="wc-dropdown" id="sel-material">
+          <option value="carbon">CARBON STEEL</option>
+          <option value="stainless">STAINLESS</option>
+          <option value="aluminum">ALUMINUM</option>
+        </select>
+      </div>
+      <div class="wc-select-group">
+        <span class="wc-select-label">DIAMETER</span>
+        <select class="wc-dropdown" id="sel-diameter">
+          <option value="0.8">0.8 mm</option>
+          <option value="1.0" selected>1.0 mm</option>
+          <option value="1.2">1.2 mm</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="wc-center-right">
+      <div class="wc-select-group">
+        <span class="wc-select-label">SHIELDING GAS</span>
+        <select class="wc-dropdown" id="sel-gas">
+          <option value="ar_co2">Ar + CO₂ (75/25)</option>
+          <option value="ar_100">100% Ar</option>
+          <option value="co2_100">100% CO₂</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="wc-right">
+      <button class="btn btn-primary wc-finish-btn" id="btn-finish-weld">FINISH WELD ›</button>
+    </div>
+
+  </div><!-- /weld-controls -->
+
+  <!-- SETTINGS MODAL -->
+  <div id="settings-modal" class="hidden">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <span>SETTINGS</span>
+        <button id="btn-close-settings">✕</button>
+      </div>
+      <div class="settings-body">
+        <label class="settings-row">
+          <span>SENSITIVITY</span>
+          <input type="range" id="ctrl-sensitivity" min="1" max="10" value="5">
+          <span id="val-sensitivity">5</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

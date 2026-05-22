@@ -1,0 +1,283 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+
+/* ── Vignette ── */
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%,
+    transparent 40%,
+    rgba(0,0,0,0.35) 72%,
+    rgba(0,0,0,0.72) 100%
+  );
+}
+
+/* ── Canvas ── */
+#weld-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 0;
+  display: block;
+}
+
+/* ── Screens layer ── */
+#screens {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  pointer-events: all;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,10,12,0.92);
+  backdrop-filter: blur(4px);
+  overflow-y: auto;
+}
+
+.screen.hidden  { display: none; }
+.screen.active  { display: flex; }
+
+/* ── HUD overlay ── */
+#hud-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#hud-overlay.hidden { display: none; }
+
+#hud-top-left {
+  position: absolute;
+  top: var(--gap-md);
+  left: var(--gap-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+#hud-top-right {
+  position: absolute;
+  top: var(--gap-md);
+  right: var(--gap-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+/* ── Weld pass progress bar ── */
+#hud-pass-bar {
+  position: absolute;
+  top: var(--gap-md);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+/* ── Status bar (sibling of #hud-overlay) ── */
+#hud-status-bar {
+  position: fixed;
+  bottom: var(--controlbar-h);
+  left: 0; right: 0;
+  z-index: 12;
+  height: var(--statusbar-h);
+  display: flex;
+  align-items: center;
+  background: rgba(14,14,18,0.97);
+  border-top: 1px solid var(--border);
+  pointer-events: all;
+  overflow: hidden;
+}
+#hud-status-bar.hidden { display: none; }
+
+.sb-section        { display: flex; flex-direction: column; justify-content: center; padding: 0 var(--gap-md); height: 100%; flex-shrink: 0; }
+.sb-sep            { width: 1px; height: 32px; background: rgba(255,255,255,0.07); flex-shrink: 0; }
+.sb-label          { font-size: 9px; color: var(--text-dim); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 1px; }
+.sb-value          { font-size: 15px; font-weight: bold; color: var(--text); font-family: var(--font-ui); }
+.sb-sublabel       { font-size: 9px; color: var(--text-dim); margin-top: 1px; }
+.sb-minibar-track  { height: 3px; background: var(--bg-card); border-radius: 2px; margin-top: 3px; overflow: hidden; width: 100%; }
+.sb-minibar-fill   { height: 100%; width: 0%; border-radius: 2px; background: var(--color-ok); transition: width .15s ease, background .2s ease; }
+.sb-process        { flex-direction: row; align-items: center; gap: var(--gap-sm); }
+.sb-stack          { display: flex; flex-direction: column; }
+.sb-icon           { width: 20px; height: 20px; color: var(--text-muted); flex-shrink: 0; }
+.sb-inline-slider  { width: 72px; accent-color: var(--color-ok); margin-top: 3px; height: 3px; cursor: pointer; }
+.sb-heat           { min-width: 170px; }
+.sb-quality        { min-width: 80px; }
+.sb-volts, .sb-amps { min-width: 100px; }
+
+/* ── Controls reference card ── */
+#hud-controls-hint {
+  position: absolute;
+  bottom: calc(var(--statusbar-h) + var(--controlbar-h) + 10px);
+  right: 16px;
+  width: 240px;
+  background: rgba(8,12,10,0.88);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  pointer-events: none;
+  font-family: 'Courier New', monospace;
+}
+
+.ctrl-title {
+  font-size: 9px;
+  letter-spacing: .14em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.ctrl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ctrl-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 7px 0;
+}
+
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctrl-icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+.ctrl-icon svg {
+  width: 14px;
+  height: 20px;
+  color: #aaccdd;
+  overflow: visible;
+}
+
+.ctrl-row kbd {
+  display: inline-block;
+  min-width: 52px;
+  text-align: center;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: #ccdded;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ctrl-row span {
+  font-size: 10px;
+  color: rgba(255,255,255,0.38);
+}
+
+/* Primary controls are brighter */
+.ctrl-primary kbd  { border-color: rgba(34,197,94,0.35); color: #aaeebb; }
+.ctrl-primary span { color: rgba(255,255,255,0.62); }
+
+/* ── In-weld controls bar ── */
+#weld-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  z-index: 15;
+  height: var(--controlbar-h);
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: 0 var(--gap-md);
+  background: rgba(10,10,14,0.98);
+  border-top: 1px solid var(--border-light);
+  pointer-events: all;
+}
+
+#weld-controls.hidden { display: none; }
+
+.wc-left         { display: flex; align-items: center; gap: var(--gap-sm); flex-shrink: 0; }
+.ppe-badge       { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-dim); letter-spacing: .06em; }
+.ppe-icon        { font-size: 13px; }
+.ppe-text        { font-family: var(--font-ui); }
+.wc-center-left  { flex-shrink: 0; margin-left: var(--gap-sm); }
+.wc-settings-btn { background: none; border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text-muted); font-family: var(--font-ui); font-size: 10px; letter-spacing: .06em; padding: 4px 10px; cursor: pointer; }
+.wc-settings-btn:hover { border-color: var(--border-light); color: var(--text); }
+.wc-center       { display: flex; align-items: center; gap: var(--gap-sm); flex: 1; justify-content: center; }
+.wc-center-right { flex-shrink: 0; }
+.wc-dropdown     { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--text-muted); font-family: var(--font-ui); font-size: 10px; letter-spacing: .04em; padding: 4px 8px; cursor: pointer; }
+.wc-dropdown:hover { border-color: var(--border-light); color: var(--text); }
+.wc-right        { flex-shrink: 0; margin-left: var(--gap-sm); }
+.wc-finish-btn   { padding: 7px 20px; font-size: 12px; letter-spacing: .08em; }
+
+.wc-select-group { display: flex; flex-direction: column; gap: 2px; }
+.wc-select-label { font-size: 8px; color: var(--text-dim); letter-spacing: .12em; text-transform: uppercase; font-family: var(--font-ui); }
+
+/* ── Settings modal ── */
+#settings-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+}
+#settings-modal.hidden { display: none; }
+
+/* ── Screen header ── */
+.screen-header {
+  width: 100%;
+  max-width: 900px;
+  padding: var(--gap-md) var(--gap-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--gap-lg);
+  flex-shrink: 0;
+}
+
+.screen-header h2 {
+  flex: 1;
+  font-size: 1.4rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ── Utility ── */
+.hidden { display: none !important; }
+.label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
